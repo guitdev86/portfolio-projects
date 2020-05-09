@@ -1,0 +1,30 @@
+.main {
+    background-color: black;
+    color: rgb(230, 194, 141);
+    font-family: 'Lobster', cursive;   
+    text-align: center;
+}
+
+h1 {
+    font-size: 48px;
+    padding-top: 3em;
+}
+
+body {
+    background-color: black;
+}
+
+#current_city {
+    font-size: 30px;
+    padding-top: 20px;
+}
+
+#current_temperature {
+    font-size: 55px;
+    padding-top: 20px;
+}
+
+#icon {
+    padding-top: 20px;
+    font-size: 50px;
+}
