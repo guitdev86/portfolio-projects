@@ -1,47 +1,39 @@
-let weatherApiKey = 'e37888bd91eeb6592332c073d3a8288a'
-let googleApi = 'AIzaSyAUbGoVdKB9ll7W81vz-7Tg9IgxQRvBed0'
-let urlGeolocate = `https://www.googleapis.com/geolocation/v1/geolocate?key=${googleApi}`
+const urlGeolocate = `https://www.googleapis.com/geolocation/v1/geolocate?key=${Keys.googleApi}`;
+const urlGeocode = 'https://maps.googleapis.com/maps/api/geocode/json';
+const weatherURL = 'https://api.openweathermap.org/data/2.5/weather';
 
 async function getPlaceName() {
-    let array = [];
-    await fetch(urlGeolocate, {
-        method: 'POST',
-        body: JSON.stringify({ id: 200 })
-    }).then(response => { if (response.ok) { return response.json(); } }).then(async jsonResponse => {
-        await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${jsonResponse.location.lat},${jsonResponse.location.lng}&key=AIzaSyAUbGoVdKB9ll7W81vz-7Tg9IgxQRvBed0`, {
-            method: 'POST',
-            body: JSON.stringify({ id: 200 })
-        })
-            .then(response => { if (response.ok) { return response.json() } })
-            .then(jsonResponse => array.push(jsonResponse))
-    })
+    const coordinates = await fetch(urlGeolocate, {method: 'POST'})
+        .then(res => res.json());
 
-    return array
+    const location = await fetch(`${urlGeocode}?latlng=${coordinates.location.lat},${coordinates.location.lng}&key=${Keys.googleApi}`)
+             .then(res => res.json())
+
+    const city = location.results[0].address_components[2].long_name;
+    const country = location.results[0].address_components[5].long_name
+
+    return `${city}, ${country}`;
 }
 
-async function fetchPlace() {
-    let result = await getPlaceName()
-    //console.log(result[0])
-    document.getElementById("current_city").append(result[0].results[0].address_components[2].long_name + ', ')
-    document.getElementById("current_city").append(result[0].results[0].address_components[5].long_name)
+async function appendPlaceName() {
+    const place = await getPlaceName();
+    document.getElementById("current_city").append(place);
 }
 
 async function getWeatherResults(place) {
-    let response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${place}&appid=${weatherApiKey}`, {
+    let temperature = await fetch(`${weatherURL}?q=${place}&appid=${Keys.weatherApiKey}`, {
         method: 'POST',
         body: JSON.stringify({ id: 200 })
     })
-
-    let jsonResponse = await response.json()
-    //console.log(jsonResponse)
-    document.getElementById("current_temperature").append(Math.floor(jsonResponse.main.temp - 273) + " °C")
-    //console.log(jsonResponse.weather[0].main)
-    document.getElementById('icon').className = chooseWeatherIcon(jsonResponse.weather[0].main)
+        .then(res => res.json());
+        
+    document.getElementById("current_temperature").append(Math.floor(temperature.main.temp - 273) + " °C")
+    document.getElementById('icon').className = chooseWeatherIcon(temperature.weather[0].main)
 }
 
 async function fetchTemperature() {
     let placeName = await getPlaceName()
-    getWeatherResults(placeName[0].results[0].address_components[2].long_name)
+    getWeatherResults(placeName.split(',')[0])
 }
 
 const chooseWeatherIcon = (weather) => {
@@ -64,5 +56,5 @@ const chooseWeatherIcon = (weather) => {
 
 }
 
-fetchPlace()
+appendPlaceName()
 fetchTemperature()
